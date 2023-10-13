@@ -1,7 +1,8 @@
 namespace allSpice.Controllers;
 
 [Authorize]
-[Controller]
+[ApiController]
+[Route("api/recipes")]
 
 public class RecipesController : ControllerBase
 {
@@ -13,6 +14,7 @@ public class RecipesController : ControllerBase
     _auth0 = auth0;
     _recipesService = recipesService;
   }
+
   [Authorize]
   [HttpPost]
   public async Task<ActionResult<Recipe>> CreateRecipe([FromBody] Recipe recipe)
