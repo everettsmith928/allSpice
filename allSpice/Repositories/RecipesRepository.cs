@@ -1,3 +1,5 @@
+using Microsoft.VisualBasic;
+
 namespace allSpice.Repositories;
 
 public class RecipesRepository
@@ -38,5 +40,31 @@ public class RecipesRepository
     recipes;";
     List<Recipe> recipes = _db.Query<Recipe>(sql).ToList();
     return recipes;
+  }
+
+  internal Recipe GetRecipeById(int recipeId)
+  {
+    string sql = @"
+    SELECT 
+    rec*,
+    act* 
+    FROM recipes rec
+    JOIN accounts act ON rec.creatorId = act.id;
+    WHERE rec.id = @recipeId
+    ;";
+    Recipe foundRecipe = _db.Query<Recipe, Account, Recipe>(sql, (recipe, account) =>
+    {
+      recipe.Creator = account;
+      return recipe;
+    }, new { recipeId }).FirstOrDefault();
+    return foundRecipe;
+  }
+
+  internal void DeleteRecipe(int recipeId)
+  {
+    string sql = @"
+    DELETE FROM recipes
+    WHERE id = @recipeId;";
+    _db.Execute(sql, recipeId);
   }
 }
