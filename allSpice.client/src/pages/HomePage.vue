@@ -2,19 +2,19 @@
     <section class="row m-3">
       <div class="col-12 d-flex justify-content-center banner elevation-5">
       <div class="row banner-filter elevation-3">
-        <div class="col-4 d-flex align-items-center justify-content-center text-center">
+        <div @click="filter = ''" class="col-4 selectable d-flex align-items-center justify-content-center text-center">
           <div>
-          <p class="banner-filter-text m-0">Home</p>
+          <p class="banner-filter-text m-0">All Recipes</p>
           </div>
         </div>
-        <div class="col-4 d-flex align-items-center justify-content-center text-center">
+        <div @click="filter = 'my'" class="col-4 selectable d-flex align-items-center justify-content-center text-center">
           <div>
           <p class="banner-filter-text m-0">My Recipes</p>
           </div>
         </div>
-        <div class="col-4 d-flex align-items-center justify-content-center text-center">
+        <div @click="filter = 'favorites'" class="col-4 selectable d-flex align-items-center justify-content-center text-center">
           <div>
-          <p class="banner-filter-text m-0">Favorites</p>
+          <p class="banner-filter-text m-0">Favorite Recipes</p>
           </div>
         </div>
       </div>
@@ -38,11 +38,30 @@
 </template>
 
 <script>
+import { computed, ref } from "vue";
 import RecipeCard from "../components/RecipeCard.vue";
-
+import { AppState} from "../AppState.js";
 export default {
     setup() {
-        return {};
+    const filter = ref('')
+
+        return {
+          filter,
+          account: computed(() => AppState.account),
+          recipes: computed(() => {
+          if (!filter.value) {
+          return AppState.recipes
+        } else if(filter.value == 'my') {
+          return AppState.filter.filter(recipe => recipe.creatorId == this.account.id)
+        } else if (filter.value == 'favorites') {
+          // Get the recipes by the Account
+          return AppState.recipes
+        } else {
+          return AppState.favoriteRecipes
+        }
+
+          })
+        };
     },
     components: { RecipeCard }
 }
