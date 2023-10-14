@@ -17,11 +17,13 @@ CREATE TABLE
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last Update',
         title VARCHAR(255) NOT NULL,
         instructions VARCHAR(500) NOT NULL,
-        image VARCHAR(500) NOT NULL,
+        img VARCHAR(500) NOT NULL,
         category VARCHAR(255) NOT NULL,
         creatorId VARCHAR(255) NOT NULL,
         FOREIGN KEY (creatorId) REFERENCES accounts(id) ON DELETE CASCADE
     ) default charset utf8 COMMENT '';
+
+-- DROP TABLE recipes;
 
 CREATE TABLE
     IF NOT EXISTS favorites(
@@ -34,6 +36,8 @@ CREATE TABLE
         FOREIGN KEY (accountId) REFERENCES accounts(id) ON DELETE CASCADE
     ) default charset utf8 COMMENT '';
 
+-- DROP TABLE favorites;
+
 CREATE TABLE
     IF NOT EXISTS ingredients(
         id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -44,3 +48,5 @@ CREATE TABLE
         recipeId INT NOT NULL,
         FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
     ) default charset utf8 COMMENT '';
+
+-- DROP TABLE ingredients;
