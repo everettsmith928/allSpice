@@ -31,6 +31,8 @@ public class AccountController : ControllerBase
     }
   }
 
+  [Authorize]
+  [HttpGet(("favorites"))]
   public async Task<ActionResult<List<RecipeFavoriteView>>> GetFavoritesByAccount()
   {
     try
