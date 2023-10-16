@@ -20,45 +20,84 @@
       </div>
       </div>
     </section>
-    <section class="row m-3 g-3 elevation-3 recipe-list">
-      <RecipeCard/>
-      <RecipeCard/>
-      <RecipeCard/>
+    <section v-if="filter == '' || filter == 'my'" class="row g-2 recipe-list">
+      <div v-for="recipe in recipes" :key="recipe.id" class="col-4 p-0 m-0 text-center">
+        <RecipeCard :recipe="recipe" />
+      </div>
     </section>
-  
-  <!-- <div class="home flex-grow-1 d-flex flex-column align-items-center justify-content-center">
-    <div class="home-card p-5 bg-white rounded elevation-3">
-      <img src="https://bcw.blob.core.windows.net/public/img/8600856373152463" alt="CodeWorks Logo"
-        class="rounded-circle">
-      <h1 class="my-5 bg-dark text-white p-3 rounded text-center">
-        Vue 3 Starter
-      </h1>
-    </div>
-  </div> -->
+    <section v-if="filter == 'favorites'" class="row g-2 recipe-list">
+      <div v-for="recipe in favoriteRecipes" :key="recipe.id" class="col-4 p-0 m-0 text-center">
+        <RecipeCard :recipe="recipe" />
+      </div>
+    </section>
+    <!-- THIS IS THE EDIT MODAL -->
+      <div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+          <div class="modal-content">
+            <div class="modal-body">
+              <ActiveRecipe/>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+ 
 </template>
 
 <script>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import RecipeCard from "../components/RecipeCard.vue";
 import { AppState} from "../AppState.js";
+import {recipesService} from "../services/RecipesService"
+import Pop from "../utils/Pop";
+import { logger } from "../utils/Logger";
+
 export default {
     setup() {
+    const account = computed(() => AppState.account)
+    const activeRecipe = computed(() => AppState.activeRecipe)
     const filter = ref('')
+    async function getRecipes() {
+      try {
+        await recipesService.getRecipes();
+      } catch (error) {
+        Pop.error(error)
+      }
+    }
 
+    async function getFavoriteRecipes() {
+      try {
+        await recipesService.getFavoriteRecipes();
+      } catch (error) {
+        Pop.error(error)
+      }
+    }
+    onMounted(() => {
+      getRecipes();
+    })
+
+    watchEffect(() => {
+      if (AppState.account)
+      getFavoriteRecipes()
+    })
         return {
+          getFavoriteRecipes,
+          activeRecipe,
+          account,
           filter,
-          account: computed(() => AppState.account),
+          favoriteRecipes: computed(() => AppState.favoriteRecipes),
           recipes: computed(() => {
-          if (!filter.value) {
-          return AppState.recipes
-        } else if(filter.value == 'my') {
-          return AppState.filter.filter(recipe => recipe.creatorId == this.account.id)
-        } else if (filter.value == 'favorites') {
-          // Get the recipes by the Account
-          return AppState.recipes
-        } else {
-          return AppState.favoriteRecipes
-        }
+          if(filter.value == 'my' && AppState.account) {
+            logger.log(filter.value)
+            logger.log(AppState.account)
+            return AppState.recipes.filter(r => r.creatorId == AppState.account.id)
+          } else if (filter.value == 'favorites' && AppState.account) {
+            logger.log(filter.value)
+            return AppState.favoriteRecipes
+          } else {
+            logger.log(filter.value)
+            return AppState.recipes
+          }
 
           })
         };
@@ -78,7 +117,7 @@ p {
   background-size: cover;
   background-position: center;
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: 10vh;
 }
 
 .banner-filter {
@@ -116,5 +155,10 @@ p {
       object-position: center;
     }
   }
+}
+
+.modal-body {
+  padding: 0px;
+  min-height: 70vh;
 }
 </style>

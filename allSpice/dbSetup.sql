@@ -50,3 +50,5 @@ CREATE TABLE
     ) default charset utf8 COMMENT '';
 
 -- DROP TABLE ingredients;
+
+DROP TABLE houses 

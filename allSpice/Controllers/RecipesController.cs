@@ -1,6 +1,5 @@
 namespace allSpice.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/recipes")]
 
