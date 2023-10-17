@@ -37,7 +37,14 @@
             <div class="modal-body">
               <ActiveRecipe/>
             </div>
-            
+            <div class="modal-footer">
+              <button @click.stop="deleteRecipe(activeRecipe.id)" v-if="activeRecipe && activeRecipe.creatorId == account.id" class="btn delete-button">
+              <i class="mdi mdi-delete"></i>
+            </button>
+            <button  v-if=" activeRecipe && activeRecipe.creatorId == account.id" class="p-2">
+              <i class="mdi mdi-pen"></i><b>Edit Recipe</b>
+            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -60,6 +67,14 @@ export default {
     async function getRecipes() {
       try {
         await recipesService.getRecipes();
+      } catch (error) {
+        Pop.error(error)
+      }
+    }
+
+    async function getFavorites() {
+      try {
+        await recipesService.getFavorites();
       } catch (error) {
         Pop.error(error)
       }
@@ -98,7 +113,6 @@ export default {
             logger.log(filter.value)
             return AppState.recipes
           }
-
           })
         };
     },
@@ -107,6 +121,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+
 
 p {
   margin: 0px;

@@ -3,13 +3,12 @@
       <img class="img-fluid recipe-image" :src="recipe.img">
       <div class="category">
         <p class="category-text m-1">{{ recipe.category }}</p>
-        <button @click.stop="toggleFavorite(recipe.id)" v-if="favorited == false" class="btn like-button"><i class="heart mdi mdi-heart-outline"></i></button>
-        <button @click.stop="toggleFavorite(recipe.id)" v-else class="btn like-button"><i class="heart mdi mdi-heart"></i></button>
+        <div v-if="favorited == false" class="btn like-button"><i class="heart mdi mdi-heart-outline"></i></div>
+        <div v-else class="btn like-button"><i class="heart mdi mdi-heart"></i></div>
       </div>
       <div class="title-panel w-100 p-0">
       <h3 class="recipe-title">{{ recipe.title }}</h3>
-      <button @click.stop="deleteRecipe(recipe.id)" v-if="recipe.creatorId == account.id" class="btn delete-button"><i class="mdi mdi-delete"></i></button>
-      <button  v-if="recipe.creatorId == account.id" class="p-2"><i class="mdi mdi-pen"></i><b>Edit Recipe</b></button>
+      
       </div>
     </div> 
     
@@ -28,10 +27,11 @@ export default {
     let favorited = ref(false)
     const account = computed(() => AppState.account)
     watchEffect(() => {
-      if(AppState.account)
+      AppState.account
       checkFavorite()
-    })
-    onMounted(() => checkFavorite())
+    }
+      
+    )
     function checkFavorite() {
       let recipeInAppstate = AppState.favoriteRecipes.find(r => r.id == props.recipe.id)
       if (recipeInAppstate) {
@@ -43,43 +43,21 @@ export default {
     props,
     account,
     favorited,
-    toggleFavorite() {
-      favorited.value = !favorited.value;
-      if(favorited.value == true)
-      {
-        logger.log("favoriting recipe..", props.recipe.id )
-        // let button = document.getElementsByClassName('btn')
-        // create favorite with recipeId
-        // button.removeAttribute('disabled')
-      } else {
-        logger.log("unfavoriting recipe..", props.recipe.id)
-          // let button = document.getElementsByClassName('btn')
-        // delete favorite with recipeId
-        //  button.removeAttribute('disabled')
-      }
-      },
+    
     setActiveRecipe() {
       let activeRecipe = AppState.recipes.find(r => r.id == props.recipe.id)
       AppState.activeRecipe = activeRecipe;
       logger.log("setting the active recipe", AppState.activeRecipe)
     },
-    deleteRecipe() {
-      logger.log("Deleting Recipe:", props.recipe.id)
-    },
+    // deleteRecipe() {
+    //   logger.log("Deleting Recipe:", props.recipe.id)
+    // },
     }
    }
   };
 </script>
 
 <style lang="scss" scoped>
-
-p {
-  margin: 0px;
-}
-
-h3 {
-  margin: 0px;
-}
 
 .like-button {
   color: #ff8484;
@@ -89,19 +67,21 @@ h3 {
   font-size: 2rem;
 }
 
-.like-button:hover {
-  transform: scale(1.1);
+p {
+  margin: 0px;
 }
+
+h3 {
+  margin: 0px;
+}
+
+
 .recipe-card {
   aspect-ratio: 1/1;
   min-height: 30vh;
   position: relative;
   border-radius: 1rem;
   transition: .5s;
-}
-
-.recipe-card:hover {
-  transform: scale(1.02);
 }
 
 .recipe-image {
