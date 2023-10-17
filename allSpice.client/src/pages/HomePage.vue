@@ -19,6 +19,13 @@
         </div>
       </div>
       </div>
+      <div v-if="filter == ''" class="col-12 search d-flex justify-content-evenly">
+        <form @submit.prevent="searchRecipes">
+          <input v-model="search" type="text">
+          <button type="submit" class="btn btn-success">Search</button>
+        </form>
+        <button v-if="account.id" @click="modal.value = 'create'"  data-bs-toggle="modal" data-bs-target="#recipeModal" class="btn btn-success">Create Recipe</button>
+      </div>
     </section>
     <section v-if="filter == '' || filter == 'my'" class="row g-2 recipe-list">
       <div v-for="recipe in recipes" :key="recipe.id" class="col-4 p-0 m-0 text-center">
@@ -35,20 +42,26 @@
         <div class="modal-dialog modal-dialog-centered modal-xl">
           <div class="modal-content">
             <div class="modal-body">
-              <ActiveRecipe/>
+               <button @click="modal.value = ''" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              </button>
+              <div v-if="modal.value == 'create'">
+                <CreateRecipeForm/>
+              </div>
+              <div v-else>
+                <ActiveRecipe/>
+              </div>
             </div>
-            <div class="modal-footer">
+            <div v-if="modal.value == ''" class="modal-footer">
               <button @click.stop="deleteRecipe(activeRecipe.id)" v-if="activeRecipe && activeRecipe.creatorId == account.id" class="btn delete-button">
               <i class="mdi mdi-delete"></i>
             </button>
-            <button  v-if=" activeRecipe && activeRecipe.creatorId == account.id" class="p-2">
+            <button  v-if="activeRecipe && activeRecipe.creatorId == account.id" class="btn btn-success p-2">
               <i class="mdi mdi-pen"></i><b>Edit Recipe</b>
             </button>
             </div>
           </div>
         </div>
       </div>
- 
 </template>
 
 <script>
@@ -58,23 +71,18 @@ import { AppState} from "../AppState.js";
 import {recipesService} from "../services/RecipesService"
 import Pop from "../utils/Pop";
 import { logger } from "../utils/Logger";
+import { Modal } from "bootstrap";
 
 export default {
     setup() {
     const account = computed(() => AppState.account)
     const activeRecipe = computed(() => AppState.activeRecipe)
     const filter = ref('')
+    const search = ref('')
+    const modal = ref({})
     async function getRecipes() {
       try {
         await recipesService.getRecipes();
-      } catch (error) {
-        Pop.error(error)
-      }
-    }
-
-    async function getFavorites() {
-      try {
-        await recipesService.getFavorites();
       } catch (error) {
         Pop.error(error)
       }
@@ -100,6 +108,8 @@ export default {
           activeRecipe,
           account,
           filter,
+          search,
+          modal,
           favoriteRecipes: computed(() => AppState.favoriteRecipes),
           recipes: computed(() => {
           if(filter.value == 'my' && AppState.account) {
@@ -113,7 +123,27 @@ export default {
             logger.log(filter.value)
             return AppState.recipes
           }
-          })
+          }),
+          searchRecipes() {
+            const foundRecipes = recipesService.searchRecipes(search.value);
+            logger.log(foundRecipes)
+            if(foundRecipes){
+              AppState.recipes = foundRecipes;
+            }
+            else {
+              search.value = {}
+              recipesService.searchRecipes(search.value)
+            }
+          },
+            async deleteRecipe() {
+              try {
+                await recipesService.deleteRecipe(activeRecipe.value.id)
+                Modal.getOrCreateInstance("#recipeModal").hide()
+              } catch (error) {
+                Pop.error(error)
+              }
+              logger.log("Deleting Recipe:", activeRecipe.value.id);
+            },
         };
     },
     components: { RecipeCard }

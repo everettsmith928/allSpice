@@ -11,7 +11,18 @@ class IngredientsService{
     AppState.ingredients = res.data?.map(i => new Ingredient(i))
     logger.log('This is the Appstate', AppState.ingredients)
   }
+  async createIngredient(newIngredient) {
+    let res = await api.post(`api/ingredients`, newIngredient)
+    logger.log(res.data)
+    AppState.ingredients.push(new Ingredient(res.data))
+  }
 
+  async deleteIngredient(ingredientId) {
+    let res = await api.delete(`api/ingredients/${ingredientId}`)
+    logger.log(res.data)
+    let index = AppState.ingredients.findIndex(i => i.id == ingredientId)
+    AppState.ingredients.splice(index, 1)
+  }
 }
 
 export const ingredientsService = new IngredientsService()

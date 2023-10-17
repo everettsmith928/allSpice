@@ -9,14 +9,14 @@
         <div class="col-12 recipe-info d-flex">
           <h3 class="recipe-title">{{ activeRecipe.title }}</h3>
           <p class="recipe-category mx-3"><b>{{ activeRecipe.category }} </b></p>
+          <div v-if="account.id">
           <button @click.stop="toggleFavorite(activeRecipe.id)" v-if="favorited == false" class="btn like-button">
             <i class="heart mdi mdi-heart-outline"></i>
           </button>
           <button @click.stop="toggleFavorite(activeRecipe.id)" v-else class="btn like-button">
             <i class="heart mdi mdi-heart"></i>
           </button>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          </button>
+          </div>
         </div>
         <div class="col-6 p-3 recipe-instructions">
           <h3 class="recipe-title">Instructions</h3>
@@ -24,6 +24,20 @@
         </div>
         <div class="col-6 p-3 recipe-ingredients">
           <h3 class="recipe-title">Ingredients</h3>
+          <div v-for="ingredient in ingredients" :key="ingredient.id" class="ingredient">
+            <IngredientCard :ingredient="ingredient"/>
+          </div>
+          <div v-if="activeRecipe && activeRecipe.creatorId == account.id">
+            <form @submit.prevent="createIngredient" class="">
+              <label>Ingredient Name</label>
+              <input v-model="ingredientData.name" class="form-control" type="text">
+              <label>Ingredient Quantity</label>
+              <input v-model="ingredientData.quantity" class="form-control" type="text">
+              <button type="submit" class="btn btn-success p-2 m-2">
+                <i class="mdi mdi-plus"></i>
+              </button>
+            </form>
+          </div>
         </div>
         </section>
       </div>
@@ -42,65 +56,78 @@ import { logger } from "../utils/Logger";
 import Pop from "../utils/Pop";
 import { ingredientsService } from "../services/IngredientsService"
 import { recipesService } from "../services/RecipesService";
+import IngredientCard from "./IngredientCard.vue";
 export default {
-  setup(){
-    let favorited = ref(false)
-    const activeRecipe = computed(() => AppState.activeRecipe)
-    const account = computed(() => AppState.account)
-    async function getIngredients() {
-      if(activeRecipe.value) {try {
-        logger.log(activeRecipe.value.id)
-        await ingredientsService.getIngredients(activeRecipe.value.id)
-      } catch (error) {
-        Pop.error(error)
-      }
-    }
-    }
-    watchEffect(() => {
-      AppState.activeRecipe
-      getIngredients()
-    })
-     watchEffect(() => {
-      if(AppState.activeRecipe){
-        checkFavorite()
-      }
-    })
-    function checkFavorite() {
-      let recipeInFavorites = AppState.favoriteRecipes.find(r => r.id == AppState.activeRecipe.id)
-      if (recipeInFavorites) {
-        favorited.value = true;
-        logger.log(favorited.value, "Prop bool swapped")
-      }
-      else {
-        favorited.value = false;
-        logger.log(favorited.value, "recipe not favorited")
-      }
-    }
-  return {
-    activeRecipe,
-    favorited,
-    account,
-    async toggleFavorite() {
-        favorited.value = !favorited.value;
-        if (favorited.value == true) {
-          logger.log("favoriting recipe..", activeRecipe.value.id)
-          await recipesService.createFavorite(activeRecipe.value.id)
-          // let button = document.getElementsByClassName('btn')
-          // create favorite with recipeId
-          // button.removeAttribute('disabled')
-        } else {
-          logger.log("unfavoriting recipe..", activeRecipe.value.id)
-          await recipesService.deleteFavorite(activeRecipe.value.id)
-          // let button = document.getElementsByClassName('btn')
-          // delete favorite with recipeId
-          //  button.removeAttribute('disabled')
+    setup() {
+        let favorited = ref(false);
+        let ingredientData = ref({})
+        const activeRecipe = computed(() => AppState.activeRecipe);
+        const account = computed(() => AppState.account);
+        const ingredients = computed(() => AppState.ingredients);
+        async function getIngredients() {
+            if (activeRecipe.value) {
+                try {
+                    logger.log(activeRecipe.value.id);
+                    await ingredientsService.getIngredients(activeRecipe.value.id);
+                }
+                catch (error) {
+                    Pop.error(error);
+                }
+            }
         }
-      },
-      deleteRecipe() {
-        logger.log("Deleting Recipe:", activeRecipe.value.id)
-      }
-    }
-  }
+        watchEffect(() => {
+            AppState.activeRecipe;
+            getIngredients();
+        });
+        watchEffect(() => {
+            if (AppState.activeRecipe) {
+                checkFavorite();
+            }
+        });
+        function checkFavorite() {
+            let recipeInFavorites = AppState.favoriteRecipes.find(r => r.id == AppState.activeRecipe.id);
+            if (recipeInFavorites) {
+                favorited.value = true;
+                logger.log(favorited.value, "Prop bool swapped");
+            }
+            else {
+                favorited.value = false;
+                logger.log(favorited.value, "recipe not favorited");
+            }
+        }
+        return {
+            activeRecipe,
+            favorited,
+            account,
+            ingredients,
+            ingredientData,
+            async toggleFavorite() {
+                favorited.value = !favorited.value;
+                if (favorited.value == true) {
+                    logger.log("favoriting recipe..", activeRecipe.value.id);
+                    await recipesService.createFavorite(activeRecipe.value.id);
+                    // let button = document.getElementsByClassName('btn')
+                    // create favorite with recipeId
+                    // button.removeAttribute('disabled')
+                }
+                else {
+                    logger.log("unfavoriting recipe..", activeRecipe.value.id);
+                    await recipesService.deleteFavorite(activeRecipe.value.id);
+                    // let button = document.getElementsByClassName('btn')
+                    // delete favorite with recipeId
+                    //  button.removeAttribute('disabled')
+                }
+            },
+          
+            async createIngredient() {
+              ingredientData.value.recipeId = AppState.activeRecipe.id
+              logger.log("creating Ingredient..", ingredientData.value)
+              ingredientsService.createIngredient(ingredientData.value)
+              ingredientData.value = {}
+            }
+        };
+    },
+    components: { IngredientCard }
 };
 </script>
 

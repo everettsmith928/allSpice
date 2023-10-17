@@ -20,6 +20,30 @@ class RecipesService {
 
   }
 
+  async createRecipe(recipeData) {
+    let res = await api.post(`api/recipes`, recipeData)
+    logger.log(res.data)
+    AppState.recipes.push(new Recipe(res.data))
+    logger.log(AppState.recipes)
+  }
+
+  async deleteRecipe(recipeId) {
+    let res = await api.delete(`api/recipes/${recipeId}`)
+    logger.log(res.data)
+    let index = AppState.recipes.findIndex(r => r.id == recipeId)
+    AppState.recipes.splice(index, 1)
+
+  }
+
+  searchRecipes(search) {
+    if(search){
+      const foundRecipes = AppState.recipes.filter(r => r.category == search)
+      return foundRecipes;
+    } else {
+      recipesService.getRecipes()
+      return AppState.recipes
+    }
+  }
 
   async getFavoriteRecipes() {
     if(AppState.account.id){
@@ -44,13 +68,15 @@ class RecipesService {
   }
 
   async deleteFavorite(recipeId){
+    debugger
     let recipeToDelete = AppState.favoriteRecipes.find(r => r.id == recipeId)
     let favoriteId = recipeToDelete.favoriteId
     let res = await api.delete(`api/favorites/${favoriteId}`)
     logger.log(res.data)
-    let recipeIndex = AppState.favoriteRecipes.findIndex(r => r.favoriteId == favoriteId)
+    let recipeIndex = AppState.favoriteRecipes.findIndex(r => r.id == recipeId)
     AppState.favoriteRecipes.splice(recipeIndex, 1);
-    logger.log(AppState.favoriteRecipes)
+    logger.log('AfterSplice', AppState.favoriteRecipes)
+  
   }
 
   async getFavorites(){

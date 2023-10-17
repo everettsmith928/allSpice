@@ -3,12 +3,11 @@
       <img class="img-fluid recipe-image" :src="recipe.img">
       <div class="category">
         <p class="category-text m-1">{{ recipe.category }}</p>
-        <div v-if="favorited == false" class="btn like-button"><i class="heart mdi mdi-heart-outline"></i></div>
+        <div v-if="!isFavorite" class="btn like-button"><i class="heart mdi mdi-heart-outline"></i></div>
         <div v-else class="btn like-button"><i class="heart mdi mdi-heart"></i></div>
       </div>
       <div class="title-panel w-100 p-0">
       <h3 class="recipe-title">{{ recipe.title }}</h3>
-      
       </div>
     </div> 
     
@@ -26,8 +25,10 @@ export default {
   setup(props){
     let favorited = ref(false)
     const account = computed(() => AppState.account)
+    const isFavorite = computed(()=> AppState.favoriteRecipes.find(r => r.id == props.recipe.id))
+
     watchEffect(() => {
-      AppState.account
+      AppState.favoriteRecipes
       checkFavorite()
     }
       
@@ -43,7 +44,7 @@ export default {
     props,
     account,
     favorited,
-    
+    isFavorite,
     setActiveRecipe() {
       let activeRecipe = AppState.recipes.find(r => r.id == props.recipe.id)
       AppState.activeRecipe = activeRecipe;
